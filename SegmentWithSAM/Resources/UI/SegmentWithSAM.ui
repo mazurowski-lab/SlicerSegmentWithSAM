@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+	<class>SegmentWithSAM</class>
+	<widget class="qMRMLWidget" name="SegmentWithSAM">
+		
+		<layout class="QGridLayout" name="gridLayout">
+			
+			<item row="0" column="0">
+				<widget class="QLabel" name="label_1">
+					<property name="minimumSize">
+						<size>
+							<width>0</width>
+							<height>30</height>
+						</size>
+					</property>
+					<property name="text">
+						<string>Select your label and mask type:</string>
+					</property>
+				</widget>
+			</item>
+
+			<item row="1" column="0">
+				<layout class="QHBoxLayout">
+					<item row="3" column="0" colspan="3">
+						<widget class="QComboBox" name="segmentationDropDown"/>
+					</item>
+					<item row="3" column="3" colspan="3">
+						<widget class="QComboBox" name="maskDropDown"/>
+					</item>
+				</layout>
+			</item>
+
+			<item row="2" column="0">
+				<layout class="QVBoxLayout">
+					<item>
+						<widget class="QPushButton" name="goToSegmentEditorButton">
+							<property name="text">
+								<string>Configure labels in the segment editor</string>
+							</property>
+						</widget>
+					</item>
+					
+					<item row="0" column="0" colspan="2">
+						<layout class="QHBoxLayout">
+							<item row="0" column="0" colspan="3">
+								<widget class="QPushButton" name="segmentButton">
+									<property name="text">
+										<string>Start Segmentation for Current Slice</string>
+									</property>
+								</widget>
+							</item>
+							<item row="0" column="3" colspan="3">
+								<widget class="QPushButton" name="stopSegmentButton">
+									<property name="text">
+										<string>Stop Segmentation for Current Slice</string>
+									</property>
+								</widget>
+							</item>
+						</layout>
+					</item>
+					
+					<item>
+						<widget class="QPushButton" name="goToMarkupsButton">
+							<property name="text">
+								<string>Create New Box Prompt</string>
+							</property>
+						</widget>
+					</item>
+
+					<item>
+						<widget class="QLabel" name="label_2">
+							<property name="minimumSize">
+								<size>
+									<width>0</width>
+									<height>30</height>
+								</size>
+							</property>
+							<property name="text">
+								<string>Add Positive Prompt Point</string>
+							</property>
+						</widget>
+					</item>
+					<item>
+						<widget class="qSlicerSimpleMarkupsWidget" name="positivePrompts">
+							<property name="enterPlaceModeOnNodeChange">
+								<bool>false</bool>
+							</property>
+							
+							<property name="defaultNodeColor">
+								<color>
+									<red>0</red>
+									<green>255</green>
+									<blue>0</blue>
+								</color>
+							</property>
+						</widget>
+					</item>
+					<item>
+						<widget class="QLabel" name="label_3">
+							<property name="text">
+								<string>Add Negative Prompt Point</string>
+							</property>
+						</widget>
+					</item>
+					<item>
+						<widget class="qSlicerSimpleMarkupsWidget" name="negativePrompts">
+							<property name="enterPlaceModeOnNodeChange">
+								<bool>false</bool>
+							</property>
+							<property name="defaultNodeColor">
+								<color>
+									<red>255</red>
+									<green>0</green>
+									<blue>0</blue>
+								</color>
+							</property>
+						</widget>
+					</item>
+				</layout>
+			</item>
+		</layout>
+	</widget>
+	<customwidgets>
+		<customwidget>
+			<class>qMRMLWidget</class>
+			<extends>QWidget</extends>
+			<header>qMRMLWidget.h</header>
+			<container>1</container>
+		</customwidget>
+		<customwidget>
+			<class>qSlicerWidget</class>
+			<extends>QWidget</extends>
+			<header>qSlicerWidget.h</header>
+			<container>1</container>
+		</customwidget>
+		<customwidget>
+			<class>qSlicerSimpleMarkupsWidget</class>
+			<extends>qSlicerWidget</extends>
+			<header>qSlicerSimpleMarkupsWidget.h</header>
+		</customwidget>
+	</customwidgets>
+	<resources/>
+	<connections>
+		
+		<connection>
+			<sender>SegmentWithSAM</sender>
+			<signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+			<receiver>positivePrompts</receiver>
+			<slot>setMRMLScene(vtkMRMLScene*)</slot>
+		</connection>
+		<connection>
+			<sender>SegmentWithSAM</sender>
+			<signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+			<receiver>negativePrompts</receiver>
+			<slot>setMRMLScene(vtkMRMLScene*)</slot>
+		</connection>
+		
+	</connections>
+	<buttongroups>
+		<buttongroup name="buttonGroupWorkOn"/>
+		<buttongroup name="buttonGroupDataType"/>
+	</buttongroups>undefined
+	
+</ui>
