@@ -26,6 +26,8 @@ After downloading all necessary files, you need to introduce the extension to 3D
 
 ## Usage
 
+You can watch our <a href="https://youtu.be/PAW2iIXMGvY">tutorial video</a> to learn how to use SegmentWithSAM.
+
 First of all, make sure you open a file on 3D Slicer before you start using SegmentWithSAM.
 
 If you've added the extension to 3D Slicer, you should be able to see it under **Modules > Segmentation > SegmentWithSAM**. You can see the user interface of the extension after you click on SegmentWithSAM in this menu.
@@ -43,4 +45,3 @@ If it is the first to segment a slice of this file, you need to wait for SAM to 
 <img src="Screenshots/sws4.png" width=45% height=45%>
 
 If you are not satisfied with the segmentation mask produced by SAM, you can edit it as you wish using the "Segment Editor" module of 3D Slicer.
-
