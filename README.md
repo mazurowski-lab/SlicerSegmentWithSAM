@@ -4,7 +4,16 @@ SegmentWithSAM aims to asist its users in segmenting medical data on <a href="ht
 
 <img src="SegmentWithSAM/Resources/Icons/SegmentWithSAM.png" width=50% height=50%>
 
-## Installation
+## Installation via Extension Manager
+
+To install this extension via 3D Slicer's Extension Manager, you should need to follow the steps below:
+
+- Go to Extension Manager of 3D Slicer (Ctrl+4)
+- Search for "SegmentWithSAM"
+- Click "Install" button
+- Restart 3D Slicer
+
+## Installation via GitHub Repository
 
 You can clone this repository by running the following command:
 
