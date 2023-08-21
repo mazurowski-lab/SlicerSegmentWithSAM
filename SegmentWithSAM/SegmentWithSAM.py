@@ -5,9 +5,6 @@ import slicer, qt, vtk, pickle
 import numpy as np
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from segment_anything import sam_model_registry, SamPredictor
-import torch
-import cv2
 
 #
 # SegmentWithSAM
@@ -96,6 +93,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """
         Called when the user opens the module the first time and the widget is initialized.
         """
+        global sam_model_registry
+        global SamPredictor
+        global torch
+        global cv2
+        
         ScriptedLoadableModuleWidget.__init__(self, parent)
         VTKObservationMixin.__init__(self) 
         self.logic = None
@@ -113,6 +115,25 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             print("You need to put SAM checkpoint in " + self.modelCheckpoint + " and restart 3D Slicer!")
             return
         
+        try:
+            from segment_anything import sam_model_registry, SamPredictor
+            import torch
+            import cv2
+        except ModuleNotFoundError:
+            if slicer.util.confirmOkCancelDisplay("One of the required packages ('segment-anything', 'torch', 'torch-vision', 'torch-audio', 'open-cv') is missing. Click OK to install it now!"):
+                progressDialog = slicer.util.createProgressDialog(
+                    labelText="Installing required packages. This may take a while...",
+                    maximum=0,
+                )
+                slicer.app.processEvents()
+                slicer.util.pip_install("git+https://github.com/facebookresearch/segment-anything.git") 
+                slicer.util.pip_install("torch torchvision torchaudio") 
+                slicer.util.pip_install("opencv-python")
+                progressDialog.close()
+                from segment_anything import sam_model_registry, SamPredictor
+                import torch
+                import cv2
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(self.device)
         model = sam_model_registry[self.modelVersion](checkpoint=self.modelCheckpoint)
