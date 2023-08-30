@@ -325,7 +325,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def initializeVariables(self):
 
         self.volume = slicer.util.arrayFromVolume(self._parameterNode.GetNodeReference("InputVolume"))
-        self.sliceAccessorDimension = self.getSliceAccessorDimension(self.volume.shape)
+        self.sliceAccessorDimension = self.getSliceAccessorDimension()
         sampleInputImage = None
 
         if self.sliceAccessorDimension == 0:
@@ -412,13 +412,19 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.collectPromptInputsAndPredictSegmentationMask()
         self.updateSegmentationScene()
     
-    def getSliceAccessorDimension(self, volumeShape):
-        if volumeShape[0] != volumeShape[1] and volumeShape[0] != volumeShape[2]:
-            return 0
-        elif volumeShape[1] != volumeShape[0] and volumeShape[1] != volumeShape[2]:
-            return 1
-
-        return 2
+    def getSliceAccessorDimension(self):
+        npArray = np.zeros((3,3))
+        self._parameterNode.GetNodeReference("InputVolume").GetIJKToRASDirections(npArray)
+        npArray = np.transpose(npArray)[0]
+        maxIndex = 0
+        maxValue = np.abs(npArray[0])
+        
+        for index in range(len(npArray)):
+            if np.abs(npArray[index]) > maxValue:
+                maxValue = np.abs(npArray[index])
+                maxIndex = index
+                
+        return maxIndex
 
     def onStopSegmentButton(self):
         self.currentlySegmenting = False
