@@ -115,23 +115,44 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             print("You need to put SAM checkpoint in " + self.modelCheckpoint + " and restart 3D Slicer!")
             return
         
+        
+        try:
+            import PyTorchUtils
+        except ModuleNotFoundError as e:
+            raise RuntimeError("This module requires PyTorch extension. Install it from the Extensions Manager.")
+
+        minimumTorchVersion = "1.7"
+        minimumTorchVisionVersion = "0.8"
+        torchLogic = PyTorchUtils.PyTorchUtilsLogic()
+
+        if not torchLogic.torchInstalled():
+            slicer.util.delayDisplay('PyTorch Python package is required. Installing... (it may take several minutes)')
+            torch = torchLogic.installTorch(askConfirmation=True, torchVersionRequirement = f">={minimumTorchVersion}", torchvisionVersionRequirement=f">={minimumTorchVisionVersion}")
+            if torch is None:
+                raise ValueError('PyTorch extension needs to be installed to use this module.')
+        else:
+            # torch is installed, check version
+            from packaging import version
+            if version.parse(torchLogic.torch.__version__) < version.parse(minimumTorchVersion):
+                raise ValueError(f'PyTorch version {torchLogic.torch.__version__} is not compatible with this module.'
+                                 + f' Minimum required version is {minimumTorchVersion}. You can use "PyTorch Util" module to install PyTorch'
+                                 + f' with version requirement set to: >={minimumTorchVersion}')
+
+        import torch
         try:
             from segment_anything import sam_model_registry, SamPredictor
-            import torch
             import cv2
         except ModuleNotFoundError:
-            if slicer.util.confirmOkCancelDisplay("One of the required packages ('segment-anything', 'torch', 'torch-vision', 'torch-audio', 'open-cv') is missing. Click OK to install it now!"):
+            if slicer.util.confirmOkCancelDisplay("One of the required packages ('segment-anything', 'open-cv') is missing. Click OK to install it now!"):
                 progressDialog = slicer.util.createProgressDialog(
                     labelText="Installing required packages. This may take a while...",
                     maximum=0,
                 )
                 slicer.app.processEvents()
                 slicer.util.pip_install("git+https://github.com/facebookresearch/segment-anything.git") 
-                slicer.util.pip_install("torch torchvision torchaudio") 
                 slicer.util.pip_install("opencv-python")
                 progressDialog.close()
                 from segment_anything import sam_model_registry, SamPredictor
-                import torch
                 import cv2
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
