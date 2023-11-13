@@ -1,14 +1,24 @@
-import logging
-import os
 import glob
-import slicer, qt, vtk, pickle
+import os
+import pickle
+
 import numpy as np
-from slicer.ScriptedLoadableModule import *
+import qt
+import vtk
+
+import slicer
+from slicer.ScriptedLoadableModule import (
+    ScriptedLoadableModule,
+    ScriptedLoadableModuleWidget,
+    ScriptedLoadableModuleLogic,
+)
 from slicer.util import VTKObservationMixin
+
 
 #
 # SegmentWithSAM
 #
+
 
 class SegmentWithSAM(ScriptedLoadableModule):
     """Uses ScriptedLoadableModule base class, available at:
