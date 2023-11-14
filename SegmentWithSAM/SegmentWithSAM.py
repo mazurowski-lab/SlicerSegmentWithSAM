@@ -73,7 +73,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.masks = None
 
         if not os.path.exists(self.modelCheckpoint):
-            print("You need to put SAM checkpoint in " + self.modelCheckpoint + " and restart 3D Slicer!")
+            print(f"You need to put SAM checkpoint in {self.modelCheckpoint} and restart 3D Slicer!")
             return
 
         try:
@@ -102,9 +102,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             from packaging import version
 
             if version.parse(torchLogic.torch.__version__) < version.parse(minimumTorchVersion):
-                raise ValueError(f"PyTorch version {torchLogic.torch.__version__} is not compatible with this module."
-                                 + f' Minimum required version is {minimumTorchVersion}. You can use "PyTorch Util" module to install PyTorch'
-                                 + f" with version requirement set to: >={minimumTorchVersion}")
+                raise ValueError(
+                    f"PyTorch version {torchLogic.torch.__version__} is not compatible with this module."
+                    ' Minimum required version is {minimumTorchVersion}. You can use "PyTorch Util" module'
+                    " to install PyTorch with version requirement set to: >={minimumTorchVersion}"
+                )
 
         import torch
 
@@ -239,7 +241,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 print(list(self.segmentIdToSegmentationMask.keys()))
 
             for i in range(3):
-                self.ui.maskDropDown.addItem("Mask-" + str(i+1))
+                self.ui.maskDropDown.addItem(f"Mask-{i + 1}")
 
             self._parameterNode.SetParameter("SAMCurrentMask", "Mask-1")
 
@@ -354,7 +356,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         for sliceIndex in range(self.nofSlices):
             sliceImage = self.getSliceBasedOnSliceAccessorDimension(sliceIndex)
-            np.save(self.slicesFolder +  "/slice_" + str(sliceIndex), sliceImage)
+            np.save(self.slicesFolder + "/" + f"slice_{sliceIndex}", sliceImage)
 
     def getSliceBasedOnSliceAccessorDimension(self, sliceIndex):
         if self.sliceAccessorDimension == 0:
@@ -402,7 +404,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 .GetName()
             )
 
-            confirmed = slicer.util.confirmOkCancelDisplay("Are you sure you want to re-annotate " + currentLabel + " for the current slice? All of your previous annotation for " + currentLabel + " in the current slice will be removed!", windowTitle="Warning")
+            confirmed = slicer.util.confirmOkCancelDisplay(
+                f"Are you sure you want to re-annotate {currentLabel} for the current slice?"
+                " All of your previous annotation for {currentLabel} in the current slice will be removed!",
+                windowTitle="Warning",
+            )
             if not confirmed:
                 return
 
@@ -563,7 +569,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.isTherePromptBoxes = True
 
             # predict mask
-            with open(self.featuresFolder + "/slice_" + str(currentSliceIndex) + "_features.pkl" , "rb") as f:
+            with open(self.featuresFolder + "/" + f"slice_{currentSliceIndex}_features.pkl", "rb") as f:
                 self.sam.features = pickle.load(f)
 
             if self.isTherePromptBoxes and not self.isTherePromptPoints:
