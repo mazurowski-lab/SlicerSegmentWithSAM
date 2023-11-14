@@ -450,7 +450,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")],
                 self._parameterNode.GetNodeReference("SAMSegmentationNode"),
                 self._parameterNode.GetParameter("SAMCurrentSegment"),
-                self._parameterNode.GetNodeReference("InputVolume")
+                self._parameterNode.GetNodeReference("InputVolume"),
             )
 
         qt.QTimer.singleShot(100, self.updateSegmentationScene)
@@ -562,7 +562,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.masks, _, _ = self.sam.predict(
                     point_coords=np.array(promptPointCoordinations),
                     point_labels=np.array(promptPointLabels),
-                    multimask_output=True
+                    multimask_output=True,
                 )
 
             elif self.isTherePromptBoxes and self.isTherePromptPoints:
