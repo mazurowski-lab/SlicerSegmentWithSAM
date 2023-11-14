@@ -24,7 +24,6 @@ extend-ignore = [
   "COM812",  # Trailing comma missing
 
   "E501",    # Line too long
-  "E712",    # Comparison to `True` should be `cond is True` or `if cond:`
 
   "ISC003",  # Explicitly concatenated string should be implicitly concatenated
 

@@ -466,7 +466,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def combineMultipleMasks(self, masks):
         finalMask = np.full(masks[0].shape, False)
         for mask in masks:
-            finalMask[mask == True] = True
+            finalMask[mask is True] = True
 
         return finalMask
 
