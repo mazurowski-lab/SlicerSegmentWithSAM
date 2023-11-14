@@ -79,7 +79,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         try:
             import PyTorchUtils
         except ModuleNotFoundError:
-            raise RuntimeError("This module requires PyTorch extension. Install it from the Extensions Manager.")
+            raise RuntimeError("This module requires PyTorch extension. Install it from the Extensions Manager.") from None
 
         minimumTorchVersion = "1.7"
         minimumTorchVisionVersion = "0.8"
