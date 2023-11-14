@@ -29,8 +29,6 @@ extend-ignore = [
   "E501",    # Line too long
   "E712",    # Comparison to `True` should be `cond is True` or `if cond:`
 
-  "F841",    # Local variable `var` is assigned to but never used
-
   "ISC003",  # Explicitly concatenated string should be implicitly concatenated
 
   "PLW0603", # Using the global statement to update `var` is discouraged
