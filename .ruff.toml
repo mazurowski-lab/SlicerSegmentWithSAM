@@ -21,8 +21,6 @@ select = [
 ]
 
 extend-ignore = [
-  "COM812",  # Trailing comma missing
-
   "E501",    # Line too long
 
   "ISC003",  # Explicitly concatenated string should be implicitly concatenated
