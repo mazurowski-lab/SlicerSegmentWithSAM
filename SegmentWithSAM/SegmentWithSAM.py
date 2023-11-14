@@ -287,17 +287,14 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 segmentName = segmentationNode.GetSegmentation().GetNthSegment(i).GetName()
                 self.ui.segmentationDropDown.addItem(segmentName)
 
-            if self._parameterNode.GetParameter("SAMCurrentSegment"):
+            currentSegment = self._parameterNode.GetParameter("SAMCurrentSegment")
+            if currentSegment:
                 self.ui.segmentationDropDown.setCurrentText(
-                    segmentationNode.GetSegmentation()
-                    .GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment"))
-                    .GetName()
+                    segmentationNode.GetSegmentation().GetSegment(currentSegment).GetName()
                 )
 
-                if self._parameterNode.GetParameter("SAMCurrentSegment") not in self.segmentIdToSegmentationMask:
-                    self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")] = np.zeros(
-                        self.volumeShape
-                    )
+                if currentSegment not in self.segmentIdToSegmentationMask:
+                    self.segmentIdToSegmentationMask[currentSegment] = np.zeros(self.volumeShape)
 
             if self._parameterNode.GetParameter("SAMCurrentMask"):
                 self.ui.maskDropDown.setCurrentText(self._parameterNode.GetParameter("SAMCurrentMask"))
@@ -386,23 +383,20 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def onStartSegmentation(self):
         self.initializeVariables()
 
+        currentSegment = self._parameterNode.GetParameter("SAMCurrentSegment")
         currentSliceIndex = self.getIndexOfCurrentSlice()
         previouslyProducedMask = None
 
         if self.sliceAccessorDimension == 2:
-            previouslyProducedMask = self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")][:,:,currentSliceIndex]
+            previouslyProducedMask = self.segmentIdToSegmentationMask[currentSegment][:, :, currentSliceIndex]
         elif self.sliceAccessorDimension == 1:
-            previouslyProducedMask = self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")][:,currentSliceIndex,:]
+            previouslyProducedMask = self.segmentIdToSegmentationMask[currentSegment][:, currentSliceIndex, :]
         else:
-            previouslyProducedMask = self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")][currentSliceIndex,:,:]
+            previouslyProducedMask = self.segmentIdToSegmentationMask[currentSegment][currentSliceIndex, :, :]
 
         if np.any(previouslyProducedMask):
             segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode")
-            currentLabel = (
-                segmentationNode.GetSegmentation()
-                .GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment"))
-                .GetName()
-            )
+            currentLabel = segmentationNode.GetSegmentation().GetSegment(currentSegment).GetName()
 
             confirmed = slicer.util.confirmOkCancelDisplay(
                 f"Are you sure you want to re-annotate {currentLabel} for the current slice?"
@@ -465,20 +459,21 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     def updateSegmentationScene(self):
         if self.currentlySegmenting:
+            currentSegment = self._parameterNode.GetParameter("SAMCurrentSegment")
             currentSliceIndex = self.getIndexOfCurrentSlice()
 
-            if self._parameterNode.GetParameter("SAMCurrentSegment") not in self.segmentIdToSegmentationMask:
-                self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")] = np.zeros(self.volumeShape)
+            if currentSegment not in self.segmentIdToSegmentationMask:
+                self.segmentIdToSegmentationMask[currentSegment] = np.zeros(self.volumeShape)
 
             if self.sliceAccessorDimension == 2:
-                self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")][:,:,currentSliceIndex] = self.producedMask
+                self.segmentIdToSegmentationMask[currentSegment][:, :, currentSliceIndex] = self.producedMask
             elif self.sliceAccessorDimension == 1:
-                self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")][:,currentSliceIndex,:] = self.producedMask
+                self.segmentIdToSegmentationMask[currentSegment][:, currentSliceIndex, :] = self.producedMask
             else:
-                self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")][currentSliceIndex,:,:] = self.producedMask
+                self.segmentIdToSegmentationMask[currentSegment][currentSliceIndex, :, :] = self.producedMask
 
             slicer.util.updateSegmentBinaryLabelmapFromArray(
-                self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")],
+                self.segmentIdToSegmentationMask[currentSegment],
                 self._parameterNode.GetNodeReference("SAMSegmentationNode"),
                 self._parameterNode.GetParameter("SAMCurrentSegment"),
                 self._parameterNode.GetNodeReference("InputVolume"),
