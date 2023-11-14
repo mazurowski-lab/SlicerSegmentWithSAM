@@ -473,7 +473,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self.isTherePromptPoints = False
             currentSliceIndex = self.getIndexOfCurrentSlice()
 
-            #collect prompt points
+            # collect prompt points
             positivePromptPointList, negativePromptPointList = [], []
 
             nofPositivePromptPoints = self.positivePromptPointsNode.GetNumberOfControlPoints()
@@ -514,7 +514,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             if len(promptPointCoordinations) != 0:
                 self.isTherePromptPoints = True
 
-            #collect prompt boxes
+            # collect prompt boxes
             boxList = []
             roiBoxes = slicer.util.getNodesByClass("vtkMRMLMarkupsROINode")
 
@@ -535,7 +535,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             if len(boxList) != 0:
                 self.isTherePromptBoxes = True
 
-            #predict mask
+            # predict mask
             with open(self.featuresFolder + "/slice_" + str(currentSliceIndex) + "_features.pkl" , "rb") as f:
                 self.sam.features = pickle.load(f)
 
