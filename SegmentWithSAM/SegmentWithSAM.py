@@ -44,6 +44,7 @@ See more information in <a href="https://github.com/mazurowski-lab/SlicerSegment
 # SegmentWithSAMWidget
 #
 
+
 class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """Uses ScriptedLoadableModuleWidget base class, available at:
     https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
@@ -75,7 +76,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             print("You need to put SAM checkpoint in " + self.modelCheckpoint + " and restart 3D Slicer!")
             return
 
-
         try:
             import PyTorchUtils
         except ModuleNotFoundError:
@@ -93,12 +93,14 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         else:
             # torch is installed, check version
             from packaging import version
+
             if version.parse(torchLogic.torch.__version__) < version.parse(minimumTorchVersion):
                 raise ValueError(f"PyTorch version {torchLogic.torch.__version__} is not compatible with this module."
                                  + f' Minimum required version is {minimumTorchVersion}. You can use "PyTorch Util" module to install PyTorch'
                                  + f" with version requirement set to: >={minimumTorchVersion}")
 
         import torch
+
         try:
             from segment_anything import sam_model_registry, SamPredictor
             import cv2
@@ -123,7 +125,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.currentlySegmenting = False
         self.featuresAreExtracted = False
-
 
     def setup(self):
         """
@@ -304,7 +305,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self._parameterNode.EndModify(wasModified)
 
     def initializeVariables(self):
-
         self.volume = slicer.util.arrayFromVolume(self._parameterNode.GetNodeReference("InputVolume"))
         self.sliceAccessorDimension = self.getSliceAccessorDimension()
         sampleInputImage = None
@@ -359,7 +359,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 pickle.dump(self.sam.features, f)
 
     def onStartSegmentation(self):
-
         self.initializeVariables()
 
         currentSliceIndex = self.getIndexOfCurrentSlice()
@@ -432,7 +431,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         return redViewLogic.GetSliceIndexFromOffset(redViewLogic.GetSliceOffset()) - 1
 
     def updateSegmentationScene(self):
-
         if self.currentlySegmenting:
             currentSliceIndex = self.getIndexOfCurrentSlice()
 
@@ -456,7 +454,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         qt.QTimer.singleShot(100, self.updateSegmentationScene)
 
     def initializeSegmentationProcess(self):
-
         self.positivePromptPointsNode = self._parameterNode.GetNodeReference("positivePromptPointsNode")
         self.negativePromptPointsNode = self._parameterNode.GetNodeReference("negativePromptPointsNode")
 
@@ -470,9 +467,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         return finalMask
 
-
     def collectPromptInputsAndPredictSegmentationMask(self):
-
         if self.currentlySegmenting:
             self.isTherePromptBoxes = False
             self.isTherePromptPoints = False
@@ -589,7 +584,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             qt.QTimer.singleShot(100, self.collectPromptInputsAndPredictSegmentationMask)
 
     def extractFeatures(self):
-
         with slicer.util.MessageDialog("Please wait until SAM has processed the input."):
             with slicer.util.WaitCursor():
                 self.createSlices()
@@ -597,9 +591,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         print("Features are extracted. You can start segmentation by placing prompt points or ROIs (boundary boxes)!")
 
+
 #
 # SegmentWithSAMLogic
 #
+
 
 class SegmentWithSAMLogic(ScriptedLoadableModuleLogic):
     """This class should implement all the actual
