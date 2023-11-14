@@ -79,7 +79,9 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         try:
             import PyTorchUtils
         except ModuleNotFoundError:
-            raise RuntimeError("This module requires PyTorch extension. Install it from the Extensions Manager.") from None
+            raise RuntimeError(
+                "This module requires PyTorch extension. Install it from the Extensions Manager."
+            ) from None
 
         minimumTorchVersion = "1.7"
         minimumTorchVisionVersion = "0.8"
@@ -87,7 +89,12 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if not torchLogic.torchInstalled():
             slicer.util.delayDisplay("PyTorch Python package is required. Installing... (it may take several minutes)")
-            torch = torchLogic.installTorch(askConfirmation=True, forceComputationBackend="cu117", torchVersionRequirement = f">={minimumTorchVersion}", torchvisionVersionRequirement=f">={minimumTorchVisionVersion}")
+            torch = torchLogic.installTorch(
+                askConfirmation=True,
+                forceComputationBackend="cu117",
+                torchVersionRequirement=f">={minimumTorchVersion}",
+                torchvisionVersionRequirement=f">={minimumTorchVisionVersion}",
+            )
             if torch is None:
                 raise ValueError("PyTorch extension needs to be installed to use this module.")
         else:
@@ -105,7 +112,9 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             from segment_anything import sam_model_registry, SamPredictor
             import cv2
         except ModuleNotFoundError:
-            if slicer.util.confirmOkCancelDisplay("One of the required packages ('segment-anything', 'open-cv') is missing. Click OK to install it now!"):
+            if slicer.util.confirmOkCancelDisplay(
+                "One of the required packages ('segment-anything', 'open-cv') is missing. Click OK to install it now!"
+            ):
                 progressDialog = slicer.util.createProgressDialog(
                     labelText="Installing required packages. This may take a while...",
                     maximum=0,
@@ -243,7 +252,9 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if inputParameterNode:
             self.logic.setDefaultParameters(inputParameterNode)
 
-        if self._parameterNode is not None and self.hasObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode):
+        if self._parameterNode is not None and self.hasObserver(
+            self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode
+        ):
             self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self.updateGUIFromParameterNode)
         self._parameterNode = inputParameterNode
         if self._parameterNode is not None:
@@ -275,10 +286,16 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.ui.segmentationDropDown.addItem(segmentName)
 
             if self._parameterNode.GetParameter("SAMCurrentSegment"):
-                self.ui.segmentationDropDown.setCurrentText(segmentationNode.GetSegmentation().GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment")).GetName())
+                self.ui.segmentationDropDown.setCurrentText(
+                    segmentationNode.GetSegmentation()
+                    .GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment"))
+                    .GetName()
+                )
 
                 if self._parameterNode.GetParameter("SAMCurrentSegment") not in self.segmentIdToSegmentationMask:
-                    self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")] = np.zeros(self.volumeShape)
+                    self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")] = np.zeros(
+                        self.volumeShape
+                    )
 
             if self._parameterNode.GetParameter("SAMCurrentMask"):
                 self.ui.maskDropDown.setCurrentText(self._parameterNode.GetParameter("SAMCurrentMask"))
@@ -296,10 +313,16 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
 
-        self._parameterNode.SetNodeReferenceID("positivePromptPointsNode", self.ui.positivePrompts.currentNode().GetID())
-        self._parameterNode.SetNodeReferenceID("negativePromptPointsNode", self.ui.negativePrompts.currentNode().GetID())
+        self._parameterNode.SetNodeReferenceID(
+            "positivePromptPointsNode", self.ui.positivePrompts.currentNode().GetID()
+        )
+        self._parameterNode.SetNodeReferenceID(
+            "negativePromptPointsNode", self.ui.negativePrompts.currentNode().GetID()
+        )
         segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode").GetSegmentation()
-        self._parameterNode.SetParameter("SAMCurrentSegment", segmentationNode.GetSegmentIdBySegmentName(self.ui.segmentationDropDown.currentText))
+        self._parameterNode.SetParameter(
+            "SAMCurrentSegment", segmentationNode.GetSegmentIdBySegmentName(self.ui.segmentationDropDown.currentText)
+        )
         self._parameterNode.SetParameter("SAMCurrentMask", self.ui.maskDropDown.currentText)
 
         self._parameterNode.EndModify(wasModified)
@@ -373,7 +396,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if np.any(previouslyProducedMask):
             segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode")
-            currentLabel = segmentationNode.GetSegmentation().GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment")).GetName()
+            currentLabel = (
+                segmentationNode.GetSegmentation()
+                .GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment"))
+                .GetName()
+            )
 
             confirmed = slicer.util.confirmOkCancelDisplay("Are you sure you want to re-annotate " + currentLabel + " for the current slice? All of your previous annotation for " + currentLabel + " in the current slice will be removed!", windowTitle="Warning")
             if not confirmed:
