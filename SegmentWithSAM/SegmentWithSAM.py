@@ -32,12 +32,15 @@ class SegmentWithSAM(ScriptedLoadableModule):
         self.parent.dependencies = []
         self.parent.contributors = ["Zafer Yildiz (Mazurowski Lab, Duke University)"]
         self.parent.helpText = """
-SegmentWithSAM aims to asist its users in segmenting medical data on <a href="https://github.com/Slicer/Slicer">3D Slicer</a> by comprehensively integrating the <a href="https://github.com/facebookresearch/segment-anything">Segment Anything Model (SAM)</a> developed by Meta.
+The SegmentWithSAM module aims to assist its users in segmenting medical data by integrating
+the <a href="https://github.com/facebookresearch/segment-anything">Segment Anything Model (SAM)</a>
+developed by Meta.<br>
+<br>
 See more information in <a href="https://github.com/mazurowski-lab/SlicerSegmentWithSAM">module documentation</a>.
 """
         self.parent.acknowledgementText = """
-            This file was originally developed by Zafer Yildiz (Mazurowski Lab, Duke University).
-        """
+This file was originally developed by Zafer Yildiz (Mazurowski Lab, Duke University).
+"""
 
 
 #
