@@ -335,13 +335,13 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         sampleInputImage = None
 
         if self.sliceAccessorDimension == 0:
-            sampleInputImage = self.volume[0,:,:]
+            sampleInputImage = self.volume[0, :, :]
             self.nofSlices = self.volume.shape[0]
         elif self.sliceAccessorDimension == 1:
-            sampleInputImage = self.volume[:,0,:]
+            sampleInputImage = self.volume[:, 0, :]
             self.nofSlices = self.volume.shape[1]
         else:
-            sampleInputImage = self.volume[:,:,0]
+            sampleInputImage = self.volume[:, :, 0]
             self.nofSlices = self.volume.shape[2]
 
         self.imageShape = sampleInputImage.shape
@@ -426,7 +426,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.updateSegmentationScene()
 
     def getSliceAccessorDimension(self):
-        npArray = np.zeros((3,3))
+        npArray = np.zeros((3, 3))
         self._parameterNode.GetNodeReference("InputVolume").GetIJKToRASDirections(npArray)
         npArray = np.transpose(npArray)[0]
         maxIndex = 0
@@ -490,7 +490,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.positivePromptPointsNode = self._parameterNode.GetNodeReference("positivePromptPointsNode")
         self.negativePromptPointsNode = self._parameterNode.GetNodeReference("negativePromptPointsNode")
 
-        self.volumeRasToIjk  = vtk.vtkMatrix4x4()
+        self.volumeRasToIjk = vtk.vtkMatrix4x4()
         self._parameterNode.GetNodeReference("InputVolume").GetRASToIJKMatrix(self.volumeRasToIjk)
 
     def combineMultipleMasks(self, masks):
@@ -516,7 +516,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     self.positivePromptPointsNode.GetNthControlPointPositionWorld(i, pointRAS)
                     pointIJK = [0, 0, 0, 1]
                     self.volumeRasToIjk.MultiplyPoint(np.append(pointRAS, 1.0), pointIJK)
-                    pointIJK = [ int(round(c)) for c in pointIJK[0:3] ]
+                    pointIJK = [int(round(c)) for c in pointIJK[0:3]]
 
                     if self.sliceAccessorDimension == 2:
                         positivePromptPointList.append([pointIJK[1], pointIJK[2]])
@@ -532,7 +532,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     self.negativePromptPointsNode.GetNthControlPointPositionWorld(i, pointRAS)
                     pointIJK = [0, 0, 0, 1]
                     self.volumeRasToIjk.MultiplyPoint(np.append(pointRAS, 1.0), pointIJK)
-                    pointIJK = [ int(round(c)) for c in pointIJK[0:3] ]
+                    pointIJK = [int(round(c)) for c in pointIJK[0:3]]
 
                     if self.sliceAccessorDimension == 2:
                         negativePromptPointList.append([pointIJK[1], pointIJK[2]])
