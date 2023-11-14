@@ -86,17 +86,17 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         torchLogic = PyTorchUtils.PyTorchUtilsLogic()
 
         if not torchLogic.torchInstalled():
-            slicer.util.delayDisplay('PyTorch Python package is required. Installing... (it may take several minutes)')
+            slicer.util.delayDisplay("PyTorch Python package is required. Installing... (it may take several minutes)")
             torch = torchLogic.installTorch(askConfirmation=True, forceComputationBackend="cu117", torchVersionRequirement = f">={minimumTorchVersion}", torchvisionVersionRequirement=f">={minimumTorchVisionVersion}")
             if torch is None:
-                raise ValueError('PyTorch extension needs to be installed to use this module.')
+                raise ValueError("PyTorch extension needs to be installed to use this module.")
         else:
             # torch is installed, check version
             from packaging import version
             if version.parse(torchLogic.torch.__version__) < version.parse(minimumTorchVersion):
-                raise ValueError(f'PyTorch version {torchLogic.torch.__version__} is not compatible with this module.'
+                raise ValueError(f"PyTorch version {torchLogic.torch.__version__} is not compatible with this module."
                                  + f' Minimum required version is {minimumTorchVersion}. You can use "PyTorch Util" module to install PyTorch'
-                                 + f' with version requirement set to: >={minimumTorchVersion}')
+                                 + f" with version requirement set to: >={minimumTorchVersion}")
 
         import torch
         try:
@@ -131,7 +131,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """
         ScriptedLoadableModuleWidget.setup(self)
 
-        uiWidget = slicer.util.loadUI(self.resourcePath('UI/SegmentWithSAM.ui'))
+        uiWidget = slicer.util.loadUI(self.resourcePath("UI/SegmentWithSAM.ui"))
         self.layout.addWidget(uiWidget)
         self.ui = slicer.util.childWidgetVariables(uiWidget)
         uiWidget.setMRMLScene(slicer.mrmlScene)
@@ -146,10 +146,10 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.negativePrompts.markupsPlaceWidget().setPlaceModePersistency(True)
 
         # Buttons
-        self.ui.goToSegmentEditorButton.connect('clicked(bool)', self.onGoToSegmentEditor)
-        self.ui.goToMarkupsButton.connect('clicked(bool)', self.onGoToMarkups)
-        self.ui.segmentButton.connect('clicked(bool)', self.onStartSegmentation)
-        self.ui.stopSegmentButton.connect('clicked(bool)', self.onStopSegmentButton)
+        self.ui.goToSegmentEditorButton.connect("clicked(bool)", self.onGoToSegmentEditor)
+        self.ui.goToMarkupsButton.connect("clicked(bool)", self.onGoToMarkups)
+        self.ui.segmentButton.connect("clicked(bool)", self.onStartSegmentation)
+        self.ui.stopSegmentButton.connect("clicked(bool)", self.onStopSegmentButton)
         self.ui.segmentationDropDown.connect("currentIndexChanged(int)", self.updateParameterNodeFromGUI)
         self.ui.maskDropDown.connect("currentIndexChanged(int)", self.updateParameterNodeFromGUI)
 
@@ -218,7 +218,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self._parameterNode.SetNodeReferenceID("negativePromptPointsNode", newPromptPointNode.GetID())
 
         if not self._parameterNode.GetNodeReferenceID("SAMSegmentationNode"):
-            newSegmentationNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode', 'SAM Segmentation')
+            newSegmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode", "SAM Segmentation")
             self._parameterNode.SetNodeReferenceID("SAMSegmentationNode", newSegmentationNode.GetID())
             newSegmentationNode.CreateDefaultDisplayNodes()
             newSegmentId = newSegmentationNode.GetSegmentation().AddEmptySegment()
@@ -355,7 +355,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
             self.sam.set_image(image)
 
-            with open(self.featuresFolder + "/" + os.path.splitext(filename)[0] + "_features.pkl", 'wb') as f:
+            with open(self.featuresFolder + "/" + os.path.splitext(filename)[0] + "_features.pkl", "wb") as f:
                 pickle.dump(self.sam.features, f)
 
     def onStartSegmentation(self):
@@ -376,7 +376,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode")
             currentLabel = segmentationNode.GetSegmentation().GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment")).GetName()
 
-            confirmed = slicer.util.confirmOkCancelDisplay('Are you sure you want to re-annotate ' + currentLabel + ' for the current slice? All of your previous annotation for ' + currentLabel + ' in the current slice will be removed!', windowTitle='Warning')
+            confirmed = slicer.util.confirmOkCancelDisplay("Are you sure you want to re-annotate " + currentLabel + " for the current slice? All of your previous annotation for " + currentLabel + " in the current slice will be removed!", windowTitle="Warning")
             if not confirmed:
                 return
 
@@ -541,7 +541,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 self.isTherePromptBoxes = True
 
             #predict mask
-            with open(self.featuresFolder + "/slice_" + str(currentSliceIndex) + "_features.pkl" , 'rb') as f:
+            with open(self.featuresFolder + "/slice_" + str(currentSliceIndex) + "_features.pkl" , "rb") as f:
                 self.sam.features = pickle.load(f)
 
             if self.isTherePromptBoxes and not self.isTherePromptPoints:
