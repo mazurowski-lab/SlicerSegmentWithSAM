@@ -13,17 +13,14 @@ select = [
   "NPY",         # NumPy specific rules
   "PGH",         # pygrep-hooks
   "PL",          # pylint
-  "Q",           # flake8-quote
   "RET",         # flake8-return
   "RUF",         # Ruff-specific
   "UP",          # pyupgrade
   "YTT",         # flake8-2020
+  "W",           # Warning
 ]
 
 extend-ignore = [
-
-  "ISC003",  # Explicitly concatenated string should be implicitly concatenated
-
   "PLW0603", # Using the global statement to update `var` is discouraged
 
   "PLR0912", # Too many branches
@@ -31,4 +28,15 @@ extend-ignore = [
   "PLR2004", # Magic value used in comparison
 
   "RET505",  # Unnecessary `elif` after `return` statement
+
+  # Disable linting rules conflicting with "ruff formatter"
+  # See https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  "COM812",
+  "COM819",
+  "E111",
+  "E114",
+  "E117",
+  "ISC001",
+  "ISC002",
+  "W191",
 ]
