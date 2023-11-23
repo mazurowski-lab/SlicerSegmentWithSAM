@@ -25,7 +25,11 @@
 						<widget class="QComboBox" name="segmentationDropDown"/>
 					</item>
 					<item row="3" column="3" colspan="3">
-						<widget class="QComboBox" name="maskDropDown"/>
+						<widget class="QComboBox" name="maskDropDown">
+							<property name="toolTip">
+								<string>SAM produces 3 masks for the same set of prompt inputs. You can select the most accurate mask among them:</string>
+							</property>
+						</widget>
 					</item>
 				</layout>
 			</item>

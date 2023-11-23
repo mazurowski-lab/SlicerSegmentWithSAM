@@ -13,7 +13,7 @@ from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModuleLogic,
 )
 from slicer.util import VTKObservationMixin
-
+import urllib.request
 
 #
 # SegmentWithSAM
@@ -76,8 +76,9 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.masks = None
 
         if not os.path.exists(self.modelCheckpoint):
-            print(f"You need to put SAM checkpoint in {self.modelCheckpoint} and restart 3D Slicer!")
-            return
+            with slicer.util.MessageDialog("Downloading SAM checkpoint. This may take a while..."):
+                with slicer.util.WaitCursor():
+                    urllib.request.urlretrieve("https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth", self.resourcePath("UI") + "/../../../" + self.modelName)
 
         try:
             import PyTorchUtils
@@ -125,7 +126,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     maximum=0,
                 )
                 slicer.app.processEvents()
-                slicer.util.pip_install("git+https://github.com/facebookresearch/segment-anything.git")
+                slicer.util.pip_install("segment_anything@https://github.com/facebookresearch/segment-anything/archive/refs/heads/main.zip") 
                 slicer.util.pip_install("opencv-python")
                 progressDialog.close()
                 from segment_anything import sam_model_registry, SamPredictor
@@ -212,15 +213,8 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         """
         # Parameter node stores all user choices in parameter values, node selections, etc.
         # so that when the scene is saved and reloaded, these settings are restored.
-
+        #         
         self.setParameterNode(self.logic.getParameterNode())
-        if not self._parameterNode.GetNodeReference("InputVolume"):
-            firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
-            if firstVolumeNode:
-                self._parameterNode.SetNodeReferenceID("InputVolume", firstVolumeNode.GetID())
-
-        volumeArray = slicer.util.arrayFromVolume(self._parameterNode.GetNodeReference("InputVolume"))
-        self.volumeShape = volumeArray.shape
 
         if not self._parameterNode.GetNodeReferenceID("positivePromptPointsNode"):
             newPromptPointNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "positive")
@@ -232,22 +226,24 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             newPromptPointNode.GetDisplayNode().SetSelectedColor(1, 0, 0)
             self._parameterNode.SetNodeReferenceID("negativePromptPointsNode", newPromptPointNode.GetID())
 
+        self.ui.positivePrompts.setCurrentNode(self._parameterNode.GetNodeReference("positivePromptPointsNode"))
+        self.ui.negativePrompts.setCurrentNode(self._parameterNode.GetNodeReference("negativePromptPointsNode"))
+
         if not self._parameterNode.GetNodeReferenceID("SAMSegmentationNode"):
-            newSegmentationNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLSegmentationNode", "SAM Segmentation")
-            self._parameterNode.SetNodeReferenceID("SAMSegmentationNode", newSegmentationNode.GetID())
-            newSegmentationNode.CreateDefaultDisplayNodes()
-            newSegmentId = newSegmentationNode.GetSegmentation().AddEmptySegment()
-            self._parameterNode.SetParameter("SAMCurrentSegment", newSegmentId)
 
-            if newSegmentId not in self.segmentIdToSegmentationMask:
-                self.segmentIdToSegmentationMask[newSegmentId] = np.zeros(self.volumeShape)
-                print(list(self.segmentIdToSegmentationMask.keys()))
-
-            for i in range(3):
-                self.ui.maskDropDown.addItem(f"Mask-{i + 1}")
-
+            self.samSegmentationNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLSegmentationNode', 'SAM Segmentation')
+            self.samSegmentationNode.CreateDefaultDisplayNodes() 
+            self.firstSegmentId = self.samSegmentationNode.GetSegmentation().AddEmptySegment()
+            
+            self._parameterNode.SetNodeReferenceID("SAMSegmentationNode", self.samSegmentationNode.GetID())
+            self._parameterNode.SetParameter("SAMCurrentSegment", self.firstSegmentId)
             self._parameterNode.SetParameter("SAMCurrentMask", "Mask-1")
 
+
+            self.ui.segmentationDropDown.addItem(self.samSegmentationNode.GetSegmentation().GetNthSegment(0).GetName())
+            for i in range(3):
+                self.ui.maskDropDown.addItem("Mask-" + str(i+1))
+            
     def setParameterNode(self, inputParameterNode):
         """
         Set and observe parameter node.
@@ -276,11 +272,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if self._parameterNode is None or self._updatingGUIFromParameterNode:
             return
 
+        if not slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode"):
+            return
+
         # Make sure GUI changes do not call updateParameterNodeFromGUI (it could cause infinite loop)
         self._updatingGUIFromParameterNode = True
-
-        self.ui.positivePrompts.setCurrentNode(self._parameterNode.GetNodeReference("positivePromptPointsNode"))
-        self.ui.negativePrompts.setCurrentNode(self._parameterNode.GetNodeReference("negativePromptPointsNode"))
 
         if self._parameterNode.GetNodeReferenceID("SAMSegmentationNode"):
             segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode")
@@ -289,15 +285,10 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             for i in range(segmentationNode.GetSegmentation().GetNumberOfSegments()):
                 segmentName = segmentationNode.GetSegmentation().GetNthSegment(i).GetName()
                 self.ui.segmentationDropDown.addItem(segmentName)
-
-            currentSegment = self._parameterNode.GetParameter("SAMCurrentSegment")
-            if currentSegment:
-                self.ui.segmentationDropDown.setCurrentText(
-                    segmentationNode.GetSegmentation().GetSegment(currentSegment).GetName()
-                )
-
-                if currentSegment not in self.segmentIdToSegmentationMask:
-                    self.segmentIdToSegmentationMask[currentSegment] = np.zeros(self.volumeShape)
+ 
+            if self._parameterNode.GetParameter("SAMCurrentSegment"):
+                self.ui.segmentationDropDown.setCurrentText(segmentationNode.GetSegmentation().GetSegment(self._parameterNode.GetParameter("SAMCurrentSegment")).GetName())
+            
 
             if self._parameterNode.GetParameter("SAMCurrentMask"):
                 self.ui.maskDropDown.setCurrentText(self._parameterNode.GetParameter("SAMCurrentMask"))
@@ -312,40 +303,52 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         if self._parameterNode is None or self._updatingGUIFromParameterNode:
             return
+        
+        if not slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode"):
+            return
 
         wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
-
-        self._parameterNode.SetNodeReferenceID(
-            "positivePromptPointsNode", self.ui.positivePrompts.currentNode().GetID()
-        )
-        self._parameterNode.SetNodeReferenceID(
-            "negativePromptPointsNode", self.ui.negativePrompts.currentNode().GetID()
-        )
+        
         segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode").GetSegmentation()
-        self._parameterNode.SetParameter(
-            "SAMCurrentSegment", segmentationNode.GetSegmentIdBySegmentName(self.ui.segmentationDropDown.currentText)
-        )
+        self._parameterNode.SetParameter("SAMCurrentSegment", segmentationNode.GetSegmentIdBySegmentName(self.ui.segmentationDropDown.currentText))
+        if self._parameterNode.GetParameter("SAMCurrentSegment") not in self.segmentIdToSegmentationMask:
+            self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")] = np.zeros(self.volumeShape)
+
         self._parameterNode.SetParameter("SAMCurrentMask", self.ui.maskDropDown.currentText)
 
         self._parameterNode.EndModify(wasModified)
 
     def initializeVariables(self):
-        self.volume = slicer.util.arrayFromVolume(self._parameterNode.GetNodeReference("InputVolume"))
-        self.sliceAccessorDimension = self.getSliceAccessorDimension()
-        sampleInputImage = None
+        
+        if not self._parameterNode.GetNodeReference("InputVolume"):
+            firstVolumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
+            
+            if firstVolumeNode:
+                self._parameterNode.SetNodeReferenceID("InputVolume", firstVolumeNode.GetID())
+                self.volume = slicer.util.arrayFromVolume(self._parameterNode.GetNodeReference("InputVolume"))
+                self.volumeShape = self.volume.shape
+                if self._parameterNode.GetParameter("SAMCurrentSegment") not in self.segmentIdToSegmentationMask:
+                    self.segmentIdToSegmentationMask[self._parameterNode.GetParameter("SAMCurrentSegment")] = np.zeros(self.volumeShape)
+                self.sliceAccessorDimension = self.getSliceAccessorDimension()
+                sampleInputImage = None
 
-        if self.sliceAccessorDimension == 0:
-            sampleInputImage = self.volume[0, :, :]
-            self.nofSlices = self.volume.shape[0]
-        elif self.sliceAccessorDimension == 1:
-            sampleInputImage = self.volume[:, 0, :]
-            self.nofSlices = self.volume.shape[1]
-        else:
-            sampleInputImage = self.volume[:, :, 0]
-            self.nofSlices = self.volume.shape[2]
+                if self.sliceAccessorDimension == 0:
+                    sampleInputImage = self.volume[0,:,:]
+                    self.nofSlices = self.volume.shape[0]
+                elif self.sliceAccessorDimension == 1:
+                    sampleInputImage = self.volume[:,0,:]
+                    self.nofSlices = self.volume.shape[1]
+                else:
+                    sampleInputImage = self.volume[:,:,0]
+                    self.nofSlices = self.volume.shape[2]
 
-        self.imageShape = sampleInputImage.shape
-
+                self.imageShape = sampleInputImage.shape
+            else:
+                slicer.util.warningDisplay("You need to add data first to start segmentation!")
+                return False
+        
+        return True
+            
     def createSlices(self):
         if not os.path.exists(self.slicesFolder):
             os.makedirs(self.slicesFolder)
@@ -384,7 +387,8 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 pickle.dump(self.sam.features, f)
 
     def onStartSegmentation(self):
-        self.initializeVariables()
+        if not self.initializeVariables():
+            return
 
         currentSegment = self._parameterNode.GetParameter("SAMCurrentSegment")
         currentSliceIndex = self.getIndexOfCurrentSlice()
