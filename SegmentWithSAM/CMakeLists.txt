@@ -12,7 +12,7 @@ set(MODULE_PYTHON_RESOURCES
   )
 set(EXTENSION_HOMEPAGE "https://github.com/mazurowski-lab/SlicerSegmentWithSAM")
 set(EXTENSION_CATEGORY "Segmentation")
-set(EXTENSION_CONTRIBUTORS "Zafer Yildiz (Duke University - Mazurowski Lab)")
+set(EXTENSION_CONTRIBUTORS "Zafer Yildiz (Mazurowski Lab, Duke University)")
 set(EXTENSION_DESCRIPTION "SegmentWithSAM aims to asist its users in segmenting medical data on 3D Slicer by comprehensively integrating the Segment Anything Model (SAM) developed by Meta.")
 set(EXTENSION_ICONURL "https://raw.githubusercontent.com/mazurowski-lab/SlicerSegmentWithSAM/SegmentWithSAM/Resources/Icons/SegmentWithSAM.png")
 set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/mazurowski-lab/SlicerSegmentWithSAM/Screenshots/sws1.png")
@@ -33,5 +33,5 @@ if(BUILD_TESTING)
   slicer_add_python_unittest(SCRIPT ${MODULE_NAME}.py)
 
   # Additional build-time testing
-  add_subdirectory(Testing)
+  # NA
 endif()
