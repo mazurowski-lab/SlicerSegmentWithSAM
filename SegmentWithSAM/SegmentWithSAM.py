@@ -1,11 +1,10 @@
 import glob
 import os
 import pickle
-
 import numpy as np
 import qt
 import vtk
-
+import shutil
 import slicer
 from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModule,
@@ -13,7 +12,7 @@ from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModuleLogic,
 )
 from slicer.util import VTKObservationMixin
-import urllib.request
+import SampleData
 
 #
 # SegmentWithSAM
@@ -71,14 +70,26 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.featuresFolder = self.resourcePath("UI") + "/../../../features"
 
         self.modelVersion = "vit_h"
-        self.modelName = "sam_vit_h_4b8939.pth"
+        self.modelName = "sam_vit_h_4b8939_verified.pth"
         self.modelCheckpoint = self.resourcePath("UI") + "/../../../" + self.modelName
         self.masks = None
 
         if not os.path.exists(self.modelCheckpoint):
-            with slicer.util.MessageDialog("Downloading SAM checkpoint. This may take a while..."):
-                with slicer.util.WaitCursor():
-                    urllib.request.urlretrieve("https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth", self.resourcePath("UI") + "/../../../" + self.modelName)
+            if slicer.util.confirmOkCancelDisplay(
+                "SAM checkpoint (2.4 GB) should be downloaded before using the extension. Click OK to install it now!"
+            ):
+                
+                slicer.progressWindow = slicer.util.createProgressDialog()
+                self.sampleDataLogic = SampleData.SampleDataLogic()
+                self.sampleDataLogic.logMessage = self.reportProgress
+
+                checksum = "SHA256:a7bf3b02f3ebf1267aba913ff637d9a2d5c33d3173bb679e46d9f338c26f262e"
+                downloadedFilePath = self.sampleDataLogic.downloadFileIntoCache("https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth", "sam_vit_h_4b8939.pth", checksum)
+                
+                if self.sampleDataLogic.downloadPercent and self.sampleDataLogic.downloadPercent == 100:
+                    shutil.copyfile(downloadedFilePath, self.modelCheckpoint)
+                    slicer.progressWindow.close()
+          
 
         try:
             import PyTorchUtils
@@ -140,6 +151,20 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         self.currentlySegmenting = False
         self.featuresAreExtracted = False
+
+    def reportProgress(self, msg, level=None):
+        # Print progress in the console
+        print("Loading... {0}%".format(self.sampleDataLogic.downloadPercent))
+        # Abort download if cancel is clicked in progress bar
+        if slicer.progressWindow.wasCanceled:
+            raise Exception("Download aborted")
+        # Update progress window
+        slicer.progressWindow.show()
+        slicer.progressWindow.activateWindow()
+        slicer.progressWindow.setValue(int(self.sampleDataLogic.downloadPercent))
+        slicer.progressWindow.setLabelText("Downloading SAM checkpoint...")
+        # Process events to allow screen to refresh
+        slicer.app.processEvents()
 
     def setup(self):
         """
