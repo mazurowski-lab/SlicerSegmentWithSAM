@@ -329,7 +329,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         if self._parameterNode is None or self._updatingGUIFromParameterNode:
             return
         
-        if not slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode"):
+        if not self._parameterNode.GetNodeReference("SAMSegmentationNode") or not hasattr(self, 'volumeShape'):
             return
 
         wasModified = self._parameterNode.StartModify()  # Modify all properties in a single batch
@@ -431,8 +431,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             currentLabel = segmentationNode.GetSegmentation().GetSegment(currentSegment).GetName()
 
             confirmed = slicer.util.confirmOkCancelDisplay(
-                f"Are you sure you want to re-annotate {currentLabel} for the current slice?"
-                " All of your previous annotation for {currentLabel} in the current slice will be removed!",
+                f"Are you sure you want to re-annotate {currentLabel} for the current slice? All of your previous annotation for {currentLabel} in the current slice will be removed!",
                 windowTitle="Warning",
             )
             if not confirmed:
@@ -523,7 +522,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     def combineMultipleMasks(self, masks):
         finalMask = np.full(masks[0].shape, False)
         for mask in masks:
-            finalMask[mask is True] = True
+            finalMask[mask == True] = True
 
         return finalMask
 
