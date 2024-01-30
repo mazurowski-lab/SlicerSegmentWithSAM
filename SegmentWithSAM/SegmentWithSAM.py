@@ -132,21 +132,15 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             if slicer.util.confirmOkCancelDisplay(
                 "One of the required packages ('segment-anything', 'open-cv') is missing. Click OK to install it now!"
             ):
-                progressDialog = slicer.util.createProgressDialog(
-                    labelText="Installing required packages. This may take a while...",
-                    maximum=0,
-                )
-                slicer.app.processEvents()
                 slicer.util.pip_install("segment_anything@https://github.com/facebookresearch/segment-anything/archive/refs/heads/main.zip") 
                 slicer.util.pip_install("opencv-python")
-                progressDialog.close()
 
         try: 
             from segment_anything import sam_model_registry, SamPredictor
             import cv2
         except ModuleNotFoundError:
             raise RuntimeError(
-                "This module requires 'segment-anything' and 'open-cv' packages. You need to isntall them to use the extension."
+                "There is a problem about the installation of 'segment-anything' or 'open-cv' package. You need to isntall them to use the extension."
             ) from None
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
