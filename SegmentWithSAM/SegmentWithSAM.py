@@ -94,9 +94,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         try:
             import PyTorchUtils
         except ModuleNotFoundError:
-            raise RuntimeError(
-                "This module requires PyTorch extension. Install it from the Extensions Manager."
-            ) from None
+            raise RuntimeError("You need to install PyTorch extension from the Extensions Manager.")
 
         minimumTorchVersion = "1.7"
         minimumTorchVisionVersion = "0.8"
@@ -111,7 +109,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 torchvisionVersionRequirement=f">={minimumTorchVisionVersion}",
             )
             if torch is None:
-                raise ValueError("PyTorch extension needs to be installed to use this module.")
+                raise ValueError("You need to install PyTorch to use SegmentWithSAM!")
         else:
             # torch is installed, check version
             from packaging import version
@@ -127,24 +125,32 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         try:
             from segment_anything import sam_model_registry, SamPredictor
+        except ModuleNotFoundError:
+            if slicer.util.confirmOkCancelDisplay(
+                "'segment-anything' is missing. Click OK to install it now!"
+            ):
+                slicer.util.pip_install("https://github.com/facebookresearch/segment-anything/archive/6fdee8f2727f4506cfbbe553e23b895e27956588.zip") 
+                
+        try: 
+            from segment_anything import sam_model_registry, SamPredictor
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'segment-anything' package. Please try again to install!")
+        
+        try:
             import cv2
         except ModuleNotFoundError:
             if slicer.util.confirmOkCancelDisplay(
-                "One of the required packages ('segment-anything', 'open-cv') is missing. Click OK to install it now!"
-            ):
-                slicer.util.pip_install("segment_anything@https://github.com/facebookresearch/segment-anything/archive/refs/heads/main.zip") 
+                "'open-cv' is missing. Click OK to install it now!"
+            ): 
                 slicer.util.pip_install("opencv-python")
 
         try: 
-            from segment_anything import sam_model_registry, SamPredictor
             import cv2
         except ModuleNotFoundError:
-            raise RuntimeError(
-                "There is a problem about the installation of 'segment-anything' or 'open-cv' package. You need to isntall them to use the extension."
-            ) from None
+            raise RuntimeError("There is a problem about the installation of 'open-cv' package. Please try again to install!")
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(self.device)
+        print("Working on", self.device)
         model = sam_model_registry[self.modelVersion](checkpoint=self.modelCheckpoint)
         model.to(device=self.device)
         self.sam = SamPredictor(model)
