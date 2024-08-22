@@ -21,10 +21,19 @@
 
 			<item row="1" column="0">
 				<layout class="QHBoxLayout">
-					<item row="3" column="0" colspan="3">
+					<item row="3" column="0" colspan="2">
+						<layout class="QHBoxLayout">
+							<item>
+								<widget class="QComboBox" name="modelDropDown"/>
+							</item>
+						</layout>
+					</item>
+
+					<item row="3" column="3" colspan="2">
 						<widget class="QComboBox" name="segmentationDropDown"/>
 					</item>
-					<item row="3" column="3" colspan="3">
+
+					<item row="3" column="6" colspan="2">
 						<widget class="QComboBox" name="maskDropDown">
 							<property name="toolTip">
 								<string>SAM produces 3 masks for the same set of prompt inputs. You can select the most accurate mask among them:</string>
@@ -36,39 +45,78 @@
 
 			<item row="2" column="0">
 				<layout class="QVBoxLayout">
-					<item>
-						<widget class="QPushButton" name="goToSegmentEditorButton">
-							<property name="text">
-								<string>Configure labels in the segment editor</string>
-							</property>
-						</widget>
-					</item>
 					
+					
+					<item>
+						<layout class="QHBoxLayout">
+							<item row="0" column="0" colspan="3">
+								<widget class="QPushButton" name="goToMarkupsButton">
+									<property name="text">
+										<string>Create New Box Prompt</string>
+									</property>
+								</widget>
+							</item>
+
+							<item row="0" column="3" colspan="3">
+								<widget class="QPushButton" name="goToSegmentEditorButton">
+									<property name="text">
+										<string>Configure Labels</string>
+									</property>
+								</widget>
+							</item>
+						</layout>
+					</item>
+
 					<item row="0" column="0" colspan="2">
 						<layout class="QHBoxLayout">
 							<item row="0" column="0" colspan="3">
 								<widget class="QPushButton" name="segmentButton">
 									<property name="text">
-										<string>Start Segmentation for Current Slice</string>
+										<string>Start 2D Segmentation for Current Slice</string>
 									</property>
 								</widget>
 							</item>
 							<item row="0" column="3" colspan="3">
 								<widget class="QPushButton" name="stopSegmentButton">
 									<property name="text">
-										<string>Stop Segmentation for Current Slice</string>
+										<string>Stop 2D Segmentation for Current Slice</string>
 									</property>
 								</widget>
 							</item>
 						</layout>
 					</item>
-					
+
 					<item>
-						<widget class="QPushButton" name="goToMarkupsButton">
-							<property name="text">
-								<string>Create New Box Prompt</string>
-							</property>
-						</widget>
+						<layout class="QHBoxLayout">
+							<item row="0" column="0" colspan="6">
+								<widget class="QPushButton" name="propagateThroughAllSlices">
+									<property name="text">
+										<string>Propagate Through All Slices</string>
+									</property>
+								</widget>
+							</item>
+						</layout>
+					</item>
+
+					<item>
+						<layout class="QHBoxLayout">
+							<item row="0" column="0" colspan="3">
+								<widget class="QPushButton" name="propagateToLeft">
+									<property name="text">
+										<string>Propagate To Left</string>
+									</property>
+								</widget>
+							</item>
+
+							<item row="0" column="3" colspan="3">
+								<widget class="QPushButton" name="propagateToRight">
+									<property name="text">
+										<string>Propagate To Right</string>
+									</property>
+								</widget>
+							</item>
+						</layout>
+						
 					</item>
 
 					<item>
