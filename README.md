@@ -1,8 +1,23 @@
 # SlicerSegmentWithSAM
 
+[**`MIDL Paper`**](https://openreview.net/pdf?id=zDOZ0IhLFF)
+
 SegmentWithSAM aims to asist its users in segmenting medical data on <a href="https://github.com/Slicer/Slicer">3D Slicer</a> by comprehensively integrating the <a href="https://github.com/facebookresearch/segment-anything">Segment Anything Model (SAM)</a> developed by Meta.
 
 <img src="SegmentWithSAM/Resources/Icons/SegmentWithSAM.png" width=50% height=50%>
+
+## How to Cite
+
+If you find our work to be useful for your research, please cite [our paper](https://openreview.net/pdf?id=zDOZ0IhLFF):
+
+```bibtex
+@inproceedings{yildiz2024segmentwithsam,
+  title={SegmentWithSAM: 3D Slicer Extension for Segment Anything Model (SAM)},
+  author={Yildiz, Zafer and Gu, Hanxue and Zhang, Jikai and Yang, Jichen and Mazurowski, Maciej A},
+  booktitle={Medical Imaging with Deep Learning},
+  year={2024}
+}
+```
 
 ## Installation via Extension Manager
 
