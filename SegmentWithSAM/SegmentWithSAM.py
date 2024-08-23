@@ -69,7 +69,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         global setuptools
         global ninja
         global plt
-        
+        global git
 
         ScriptedLoadableModuleWidget.__init__(self, parent)
         VTKObservationMixin.__init__(self)
@@ -205,6 +205,27 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     slicer.progressWindow.close()
 
         try:
+            import git
+        except ModuleNotFoundError:
+            slicer.util.pip_install("gitpython")
+
+        try: 
+            import git
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'gitpython' package. Please try again to install!")
+
+        import shutil
+
+        if not os.path.exists(self.resourcePath("UI") + "/../../../sam2_configs"):
+            copyFolder = self.resourcePath("UI") + "/../../../repo_copy"
+            os.makedirs(copyFolder)
+            git.Repo.clone_from("https://github.com/mazurowski-lab/SlicerSegmentWithSAM.git", copyFolder)
+            shutil.move(copyFolder + "./sam2", self.resourcePath("UI") + "/../../../sam2")
+            shutil.move(copyFolder + "./sam2_configs", self.resourcePath("UI") + "/../../../sam2_configs")
+            shutil.move(copyFolder + "./setup.py", self.resourcePath("UI") + "/../../../setup.py")
+            shutil.rmtree(copyFolder, ignore_errors=True)
+
+        try:
             import PyTorchUtils
         except ModuleNotFoundError:
             extensionName = 'PyTorch'
@@ -218,27 +239,26 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         minimumTorchVisionVersion = "0.15.0"
         torchLogic = PyTorchUtils.PyTorchUtilsLogic()
 
+        import platform
         if not torchLogic.torchInstalled():
-            slicer.util.delayDisplay("PyTorch Python package is required. Installing... (it may take several minutes)")
-            torch = torchLogic.installTorch(
-                askConfirmation=True,
-                forceComputationBackend="cu117",
-                torchVersionRequirement=f">={minimumTorchVersion}",
-                torchvisionVersionRequirement=f">={minimumTorchVisionVersion}",
-            )
-            if torch is None:
-                raise ValueError("You need to install PyTorch to use SegmentWithSAM!")
-        else:
-            # torch is installed, check version
-            from packaging import version
-
-            if version.parse(torchLogic.torch.__version__) < version.parse(minimumTorchVersion):
-                raise ValueError(
-                    f"PyTorch version {torchLogic.torch.__version__} is not compatible with this module."
-                    ' Minimum required version is {minimumTorchVersion}. You can use "PyTorch Util" module'
-                    " to install PyTorch with version requirement set to: >={minimumTorchVersion}"
+            if "Windows" in platform.platform() or "Linux" in platform.platform():
+                slicer.util.delayDisplay("PyTorch Python package is required. Installing... (it may take several minutes)")
+                torch = torchLogic.installTorch(
+                    askConfirmation=True,
+                    forceComputationBackend="cu117",
+                    torchVersionRequirement=f">={minimumTorchVersion}",
+                    torchvisionVersionRequirement=f">={minimumTorchVisionVersion}",
                 )
-
+                if torch is None:
+                    raise ValueError("You need to install PyTorch to use SegmentWithSAM!")
+            else:
+                slicer.util.delayDisplay("PyTorch Python package is required. Installing... (it may take several minutes)")
+                torch = torchLogic.installTorch(
+                    askConfirmation=True,
+                )
+                if torch is None:
+                    raise ValueError("You need to install PyTorch to use SegmentWithSAM!")
+        
         import torch
 
         try:
@@ -260,7 +280,11 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 "'hydra' is missing. Click OK to install it now!"
             ): 
                 slicer.util.pip_install("hydra-core")
-        import hydra
+        try: 
+            import hydra
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'hydra' package. Please try again to install!")
+
 
         try:
             import ninja
@@ -269,38 +293,41 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                 "'ninja' is missing. Click OK to install it now!"
             ): 
                 slicer.util.pip_install("ninja")
-        import ninja
+        try: 
+            import ninja
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'ninja' package. Please try again to install!")
+
 
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
-            if slicer.util.confirmOkCancelDisplay(
-                "'matplotlib' is missing. Click OK to install it now!"
-            ): 
-                slicer.util.pip_install("matplotlib")
-        import matplotlib.pyplot as plt
+            slicer.util.pip_install("matplotlib")
+        
+        try: 
+            import  matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'matplotlib' package. Please try again to install!")
 
         try:
             import tqdm
         except ModuleNotFoundError:
-            if slicer.util.confirmOkCancelDisplay(
-                "'tqdm' is missing. Click OK to install it now!"
-            ): 
-                slicer.util.pip_install("tqdm")
-        import tqdm
+            slicer.util.pip_install("tqdm")
+        try: 
+            import tqdm
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'tqdm' package. Please try again to install!")
 
         try:
-            import setuptools
+            import cv2
         except ModuleNotFoundError:
-            if slicer.util.confirmOkCancelDisplay(
-                "'setuptools' is missing. Click OK to install it now!"
-            ): 
-                slicer.util.pip_install("setuptools==69.5.1")
-        import setuptools
-        '''print(os.listdir(self.resourcePath("UI")))
-        print(os.listdir(self.resourcePath("UI") + "/../../../") )
-        os.chdir(self.resourcePath("UI") + "/../../../")
-        os.system("python setup.py build_ext --inplace" )'''
+            slicer.util.pip_install("opencv-python")
+
+        try: 
+            import cv2
+        except ModuleNotFoundError:
+            raise RuntimeError("There is a problem about the installation of 'open-cv' package. Please try again to install!")
+
         try: 
             from sam2.build_sam import build_sam2
             from sam2.sam2_image_predictor import SAM2ImagePredictor
@@ -309,21 +336,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         except ModuleNotFoundError:
             raise RuntimeError("There is a problem about the installation of 'sam-2' package. Please try again to install!")
         
-        #setup(cmdclass="build_ext")
-
-        try:
-            import cv2
-        except ModuleNotFoundError:
-            if slicer.util.confirmOkCancelDisplay(
-                "'open-cv' is missing. Click OK to install it now!"
-            ): 
-                slicer.util.pip_install("opencv-python")
-
-        try: 
-            import cv2
-        except ModuleNotFoundError:
-            raise RuntimeError("There is a problem about the installation of 'open-cv' package. Please try again to install!")
-
+        
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         print("Working on", self.device)
 
