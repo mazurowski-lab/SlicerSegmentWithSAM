@@ -89,6 +89,8 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         vtk.vtkObject.GlobalWarningDisplayOff()
 
+        import shutil
+
         if not os.path.exists(self.checkpointFolder):
             os.makedirs(self.checkpointFolder)
 
@@ -213,8 +215,6 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             import git
         except ModuleNotFoundError:
             raise RuntimeError("There is a problem about the installation of 'gitpython' package. Please try again to install!")
-
-        import shutil
 
         if not os.path.exists(self.resourcePath("UI") + "/../../../sam2_configs"):
             copyFolder = self.resourcePath("UI") + "/../../../repo_copy"
