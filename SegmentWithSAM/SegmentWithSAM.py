@@ -253,11 +253,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     raise ValueError("You need to install PyTorch to use SegmentWithSAM!")
             else:
                 slicer.util.delayDisplay("PyTorch Python package is required. Installing... (it may take several minutes)")
-                torch = torchLogic.installTorch(
-                    askConfirmation=True,
-                )
-                if torch is None:
-                    raise ValueError("You need to install PyTorch to use SegmentWithSAM!")
+                slicer.util.pip_install("torch torchvision torchaudio")
         
         import torch
 
