@@ -220,9 +220,9 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             copyFolder = self.resourcePath("UI") + "/../../../repo_copy"
             os.makedirs(copyFolder)
             git.Repo.clone_from("https://github.com/mazurowski-lab/SlicerSegmentWithSAM.git", copyFolder)
-            shutil.move(copyFolder + "./sam2", self.resourcePath("UI") + "/../../../sam2")
-            shutil.move(copyFolder + "./sam2_configs", self.resourcePath("UI") + "/../../../sam2_configs")
-            shutil.move(copyFolder + "./setup.py", self.resourcePath("UI") + "/../../../setup.py")
+            shutil.move(copyFolder + "/sam2", self.resourcePath("UI") + "/../../../sam2")
+            shutil.move(copyFolder + "/sam2_configs", self.resourcePath("UI") + "/../../../sam2_configs")
+            shutil.move(copyFolder + "/setup.py", self.resourcePath("UI") + "/../../../setup.py")
             shutil.rmtree(copyFolder, ignore_errors=True)
 
         try:
