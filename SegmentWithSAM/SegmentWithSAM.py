@@ -89,6 +89,10 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         vtk.vtkObject.GlobalWarningDisplayOff()
 
+        slicer.util.warningDisplay(
+            "Please note that this software is developed for research purposes and is not intended for clinical use yet. Users should exercise caution and are advised against employing it immediately in clinical or medical settings."
+        ) 
+
         import shutil
 
         if not os.path.exists(self.checkpointFolder):
