@@ -1,6 +1,6 @@
 # SlicerSegmentWithSAM
 
-[**`MIDL Paper`**](https://openreview.net/pdf?id=zDOZ0IhLFF)
+[![arXiv Paper](https://img.shields.io/badge/arXiv-2401.12974-orange.svg?style=flat)](https://arxiv.org/abs/2408.15224) [**`MIDL Paper`**](https://openreview.net/pdf?id=zDOZ0IhLFF)
 
 SegmentWithSAM aims to asist its users in segmenting medical data on <a href="https://github.com/Slicer/Slicer">3D Slicer</a> by comprehensively integrating the <a href="https://github.com/facebookresearch/segment-anything">Segment Anything Model (SAM)</a> developed by Meta.
 
@@ -8,9 +8,17 @@ SegmentWithSAM aims to asist its users in segmenting medical data on <a href="ht
 
 ## How to Cite
 
-If you find our work to be useful for your research, please cite [our paper](https://openreview.net/pdf?id=zDOZ0IhLFF):
+If you find our work to be useful for your research, please cite our papers:
+
 
 ```bibtex
+@article{yildiz2024sam,
+  title={SAM \& SAM 2 in 3D Slicer: SegmentWithSAM Extension for Annotating Medical Images},
+  author={Yildiz, Zafer and Chen, Yuwen and Mazurowski, Maciej A},
+  journal={arXiv preprint arXiv:2408.15224},
+  year={2024}
+}
+
 @inproceedings{yildiz2024segmentwithsam,
   title={SegmentWithSAM: 3D Slicer Extension for Segment Anything Model (SAM)},
   author={Yildiz, Zafer and Gu, Hanxue and Zhang, Jikai and Yang, Jichen and Mazurowski, Maciej A},
