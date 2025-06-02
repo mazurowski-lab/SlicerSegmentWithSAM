@@ -93,6 +93,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             "Please note that this software is developed for research purposes and is not intended for clinical use yet. Users should exercise caution and are advised against employing it immediately in clinical or medical settings."
         ) 
 
+    
         import shutil
 
         if not os.path.exists(self.checkpointFolder):
@@ -490,8 +491,78 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
         return sliceIndicesToPromptPointCoordinations, sliceIndicesToPromptPointLabels
 
+    def getAnnotationMaskBasedOnSliceAccessorDimension(self, segmentationArray, sliceIndex):
+        if self.sliceAccessorDimension == 0:
+            return segmentationArray[sliceIndex, :, :]
+        elif self.sliceAccessorDimension == 1:
+            return segmentationArray[:, sliceIndex, :]
+        else:
+            return segmentationArray[:, :, sliceIndex]
 
-    def propagateThroughAllSlices(self):
+    def getAnnotationMaskForTheSlice(self, sliceIndex):
+        
+        volumeNode = slicer.mrmlScene.GetFirstNodeByClass("vtkMRMLScalarVolumeNode")
+        segmentationNode = self._parameterNode.GetNodeReference("SAMSegmentationNode")
+        segmentId = segmentationNode.GetSegmentation().GetSegmentIdBySegmentName('Segment_1')
+        #print(volumeNode, segmentationNode, segmentId)
+
+        # Get segment as numpy array
+        segmentArray = slicer.util.arrayFromSegmentBinaryLabelmap(segmentationNode, segmentId, volumeNode)
+        
+        sliceAnnotationImage = self.getAnnotationMaskBasedOnSliceAccessorDimension(segmentArray, sliceIndex)
+        return sliceAnnotationImage
+        
+
+    def propagateMaskPromptThroughAllSlices(self):
+
+
+        with slicer.util.MessageDialog("Propagating through all slices. This may take up to 5-10 mins based on your computing environment!"):
+            with slicer.util.WaitCursor():
+                self.createFrames()
+
+                sliceIndex = self.getIndexOfCurrentSlice()
+                annotationMask = self.getAnnotationMaskForTheSlice(sliceIndex)
+
+                frame_names = [
+                    p for p in os.listdir(self.framesFolder)
+                    if os.path.splitext(p)[-1] in [".jpg", ".jpeg", ".JPG", ".JPEG"]
+                ]
+                frame_names.sort(key=lambda p: int(os.path.splitext(p)[0]))
+                inference_state = self.videoPredictor.init_state(video_path=self.framesFolder)
+
+                _, out_obj_ids, out_mask_logits = self.videoPredictor.add_new_mask(
+                    inference_state=inference_state,
+                    frame_idx=sliceIndex,
+                    obj_id=self._parameterNode.GetParameter("SAMCurrentSegment"),
+                    mask=annotationMask
+                )
+
+                video_segments = {}  # video_segments contains the per-frame segmentation results
+                for out_frame_idx, out_obj_ids, out_mask_logits in self.videoPredictor.propagate_in_video(inference_state):
+                    video_segments[out_frame_idx] = {
+                        out_obj_id: (out_mask_logits[i] > 0.0).cpu().numpy()
+                        for i, out_obj_id in enumerate(out_obj_ids)
+                    }
+
+                for out_frame_idx, out_obj_ids, out_mask_logits in self.videoPredictor.propagate_in_video(inference_state, reverse=True):
+                    video_segments[out_frame_idx] = {
+                        out_obj_id: (out_mask_logits[i] > 0.0).cpu().numpy()
+                        for i, out_obj_id in enumerate(out_obj_ids)
+                    }
+
+                plt.close("all")
+                # render the segmentation results every few frames
+                for out_frame_idx in range(len(frame_names)):
+                    for out_obj_id, out_mask in video_segments[out_frame_idx].items():
+                        orig_map=plt.cm.get_cmap('binary') 
+                        # reversing the original colormap using reversed() function 
+                        reversed_binary = orig_map.reversed() 
+                        plt.imsave(self.framesFolder + "/" + "0" * (5 - len(str(out_frame_idx))) + str(out_frame_idx) + "_mask.jpeg", out_mask[0], cmap=reversed_binary)
+
+                self.updateSlicesWithSegmentationMasks(0, self.nofSlices - 1)
+
+
+    """def propagateThroughAllSlices(self):
         with slicer.util.MessageDialog("Propagating through all slices..."):
             with slicer.util.WaitCursor():
                 self.createFrames()
@@ -536,7 +607,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                         reversed_binary = orig_map.reversed() 
                         plt.imsave(self.framesFolder + "/" + "0" * (5 - len(str(out_frame_idx))) + str(out_frame_idx) + "_mask.jpeg", out_mask[0], cmap=reversed_binary)
 
-                self.updateSlicesWithSegmentationMasks(0, self.nofSlices - 1)
+                self.updateSlicesWithSegmentationMasks(0, self.nofSlices - 1)"""
 
 
     def updateSlicesWithSegmentationMasks(self, start, end):
@@ -565,7 +636,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         )
 
     def propagateToLeft(self):
-        with slicer.util.MessageDialog("Propagating to left..."):
+        with slicer.util.MessageDialog("Propagating to left. This may take up to 5 mins based on your computing environment."):
             with slicer.util.WaitCursor():
                 self.createFrames()
                 self.propagation(toLeft=True)
@@ -574,7 +645,7 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
 
     def propagateToRight(self):
-        with slicer.util.MessageDialog("Propagating to right..."):
+        with slicer.util.MessageDialog("Propagating to right. This may take up to 5 mins based on your computing environment."):
             with slicer.util.WaitCursor():
                 self.createFrames()
                 self.propagation(toLeft=False)
@@ -649,6 +720,31 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.currentlySegmenting = False
         self.featuresAreExtracted = False
 
+    def numberOfProcessedSlices(self, msg, level=None):
+
+        slicer.progressWindow = slicer.util.createProgressDialog()
+        self.sampleDataLogic = SampleData.SampleDataLogic()
+        self.sampleDataLogic.logMessage = self.reportProgress
+
+        checksum = "SHA256:7442e4e9b732a508f80e141e7c2913437a3610ee0c77381a66658c3a445df87b"    
+        downloadedFilePath = self.sampleDataLogic.downloadFileIntoCache("https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_large.pt", "sam2_hiera_large.pt", checksum)
+        
+        if self.sampleDataLogic.downloadPercent and self.sampleDataLogic.downloadPercent == 100:
+            shutil.copyfile(downloadedFilePath, self.checkpointFolder + "sam2_hiera_large.pt")
+            slicer.progressWindow.close()
+
+        # Print progress in the console
+        print("Loading... {0}%".format(self.sampleDataLogic.downloadPercent))
+        
+        # Update progress window
+        slicer.progressWindow.show()
+        slicer.progressWindow.activateWindow()
+        slicer.progressWindow.setValue(int(self.sampleDataLogic.downloadPercent))
+        slicer.progressWindow.setLabelText("Downloading SAM checkpoint...")
+        # Process events to allow screen to refresh
+        slicer.app.processEvents()
+
+
     def reportProgress(self, msg, level=None):
         # Print progress in the console
         print("Loading... {0}%".format(self.sampleDataLogic.downloadPercent))
@@ -688,7 +784,8 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         self.ui.goToMarkupsButton.connect("clicked(bool)", self.onGoToMarkups)
         self.ui.propagateToLeft.connect("clicked(bool)", self.propagateToLeft)
         self.ui.propagateToRight.connect("clicked(bool)", self.propagateToRight)
-        self.ui.propagateThroughAllSlices.connect('clicked(bool)', self.propagateThroughAllSlices)
+        #self.ui.propagateThroughAllSlices.connect('clicked(bool)', self.propagateThroughAllSlices)
+        self.ui.propagateMaskThroughAllSlices.connect('clicked(bool)', self.propagateMaskPromptThroughAllSlices)
         self.ui.segmentButton.connect("clicked(bool)", self.onStartSegmentation)
         self.ui.stopSegmentButton.connect("clicked(bool)", self.onStopSegmentButton)
         self.ui.segmentationDropDown.connect("currentIndexChanged(int)", self.updateParameterNodeFromGUI)
@@ -767,8 +864,10 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             self._parameterNode.SetParameter("SAMCurrentModel", "SAM")
 
             self.ui.segmentationDropDown.addItem(self.samSegmentationNode.GetSegmentation().GetNthSegment(0).GetName())
-            for i in range(3):
-                self.ui.maskDropDown.addItem("Mask-" + str(i+1))
+            
+            self.ui.maskDropDown.addItem("Mask-1 (default)")
+            self.ui.maskDropDown.addItem("Mask-2")
+            self.ui.maskDropDown.addItem("Mask-3")
 
             self.ui.modelDropDown.addItem("SAM-2 Tiny")
             self.ui.modelDropDown.addItem("SAM-2 Small")
@@ -919,7 +1018,15 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         for filename in oldFeatureFiles:
             os.remove(filename)
 
-        for filename in os.listdir(self.slicesFolder):
+        slicer.progressWindow = slicer.util.createProgressDialog(value=0, maximum=self.nofSlices)
+        for counter, filename in enumerate(os.listdir(self.slicesFolder)):
+            
+            if slicer.progressWindow.wasCanceled:
+                break
+            slicer.progressWindow.labelText = 'Processing image...'
+            slicer.app.processEvents()
+            slicer.progressWindow.setValue(counter)
+
             #if filename in ('slice_68.npy', 'slice_69.npy', 'slice_70.npy'):
             image = np.load(self.slicesFolder + "/" + filename)
             image = (255 * (image - np.min(image)) / np.ptp(image)).astype(np.uint8)
@@ -931,6 +1038,8 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
                     pickle.dump(self.sam._features, f)
                 else:
                     pickle.dump(self.sam.features, f)
+
+        slicer.progressWindow.close()
 
     def onStartSegmentation(self):
         if not self.initializeVariables():
@@ -1194,10 +1303,9 @@ class SegmentWithSAMWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
             qt.QTimer.singleShot(100, self.collectPromptInputsAndPredictSegmentationMask)
 
     def extractFeatures(self):
-        with slicer.util.MessageDialog("Please wait until SAM has processed the input."):
-            with slicer.util.WaitCursor():
-                self.createSlices()
-                self.createFeatures()
+        
+        self.createSlices()
+        self.createFeatures()
 
         print("Features are extracted. You can start segmentation by placing prompt points or ROIs (boundary boxes)!")
 

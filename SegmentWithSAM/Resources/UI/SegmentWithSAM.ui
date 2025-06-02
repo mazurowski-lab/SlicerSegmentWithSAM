@@ -1,216 +1,260 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-	<class>SegmentWithSAM</class>
-	<widget class="qMRMLWidget" name="SegmentWithSAM">
-		
-		<layout class="QGridLayout" name="gridLayout">
-			
-			<item row="0" column="0">
-				<widget class="QLabel" name="label_1">
-					<property name="minimumSize">
-						<size>
-							<width>0</width>
-							<height>30</height>
-						</size>
-					</property>
-					<property name="text">
-						<string>Select your label and mask type:</string>
-					</property>
-				</widget>
-			</item>
-
-			<item row="1" column="0">
-				<layout class="QHBoxLayout">
-					<item row="3" column="0" colspan="2">
-						<layout class="QHBoxLayout">
-							<item>
-								<widget class="QComboBox" name="modelDropDown"/>
-							</item>
-						</layout>
-					</item>
-
-					<item row="3" column="3" colspan="2">
-						<widget class="QComboBox" name="segmentationDropDown"/>
-					</item>
-
-					<item row="3" column="6" colspan="2">
-						<widget class="QComboBox" name="maskDropDown">
-							<property name="toolTip">
-								<string>SAM produces 3 masks for the same set of prompt inputs. You can select the most accurate mask among them:</string>
-							</property>
-						</widget>
-					</item>
-				</layout>
-			</item>
-
-			<item row="2" column="0">
-				<layout class="QVBoxLayout">
-					
-					
-					<item>
-						<layout class="QHBoxLayout">
-							<item row="0" column="0" colspan="3">
-								<widget class="QPushButton" name="goToMarkupsButton">
-									<property name="text">
-										<string>Create New Box Prompt</string>
-									</property>
-								</widget>
-							</item>
-
-							<item row="0" column="3" colspan="3">
-								<widget class="QPushButton" name="goToSegmentEditorButton">
-									<property name="text">
-										<string>Configure Labels</string>
-									</property>
-								</widget>
-							</item>
-						</layout>
-					</item>
-
-					<item row="0" column="0" colspan="2">
-						<layout class="QHBoxLayout">
-							<item row="0" column="0" colspan="3">
-								<widget class="QPushButton" name="segmentButton">
-									<property name="text">
-										<string>Start 2D Segmentation for Current Slice</string>
-									</property>
-								</widget>
-							</item>
-							<item row="0" column="3" colspan="3">
-								<widget class="QPushButton" name="stopSegmentButton">
-									<property name="text">
-										<string>Stop 2D Segmentation for Current Slice</string>
-									</property>
-								</widget>
-							</item>
-						</layout>
-					</item>
-
-					<item>
-						<layout class="QHBoxLayout">
-							<item row="0" column="0" colspan="6">
-								<widget class="QPushButton" name="propagateThroughAllSlices">
-									<property name="text">
-										<string>Propagate Through All Slices</string>
-									</property>
-								</widget>
-							</item>
-						</layout>
-					</item>
-
-					<item>
-						<layout class="QHBoxLayout">
-							<item row="0" column="0" colspan="3">
-								<widget class="QPushButton" name="propagateToLeft">
-									<property name="text">
-										<string>Propagate To Left</string>
-									</property>
-								</widget>
-							</item>
-
-							<item row="0" column="3" colspan="3">
-								<widget class="QPushButton" name="propagateToRight">
-									<property name="text">
-										<string>Propagate To Right</string>
-									</property>
-								</widget>
-							</item>
-						</layout>
-						
-					</item>
-
-					<item>
-						<widget class="QLabel" name="label_2">
-							<property name="minimumSize">
-								<size>
-									<width>0</width>
-									<height>30</height>
-								</size>
-							</property>
-							<property name="text">
-								<string>Add Positive Prompt Point</string>
-							</property>
-						</widget>
-					</item>
-					<item>
-						<widget class="qSlicerSimpleMarkupsWidget" name="positivePrompts">
-							<property name="enterPlaceModeOnNodeChange">
-								<bool>false</bool>
-							</property>
-							
-							<property name="defaultNodeColor">
-								<color>
-									<red>0</red>
-									<green>255</green>
-									<blue>0</blue>
-								</color>
-							</property>
-						</widget>
-					</item>
-					<item>
-						<widget class="QLabel" name="label_3">
-							<property name="text">
-								<string>Add Negative Prompt Point</string>
-							</property>
-						</widget>
-					</item>
-					<item>
-						<widget class="qSlicerSimpleMarkupsWidget" name="negativePrompts">
-							<property name="enterPlaceModeOnNodeChange">
-								<bool>false</bool>
-							</property>
-							<property name="defaultNodeColor">
-								<color>
-									<red>255</red>
-									<green>0</green>
-									<blue>0</blue>
-								</color>
-							</property>
-						</widget>
-					</item>
-				</layout>
-			</item>
-		</layout>
-	</widget>
-	<customwidgets>
-		<customwidget>
-			<class>qMRMLWidget</class>
-			<extends>QWidget</extends>
-			<header>qMRMLWidget.h</header>
-			<container>1</container>
-		</customwidget>
-		<customwidget>
-			<class>qSlicerWidget</class>
-			<extends>QWidget</extends>
-			<header>qSlicerWidget.h</header>
-			<container>1</container>
-		</customwidget>
-		<customwidget>
-			<class>qSlicerSimpleMarkupsWidget</class>
-			<extends>qSlicerWidget</extends>
-			<header>qSlicerSimpleMarkupsWidget.h</header>
-		</customwidget>
-	</customwidgets>
-	<resources/>
-	<connections>
-		
-		<connection>
-			<sender>SegmentWithSAM</sender>
-			<signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-			<receiver>positivePrompts</receiver>
-			<slot>setMRMLScene(vtkMRMLScene*)</slot>
-		</connection>
-		<connection>
-			<sender>SegmentWithSAM</sender>
-			<signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
-			<receiver>negativePrompts</receiver>
-			<slot>setMRMLScene(vtkMRMLScene*)</slot>
-		</connection>
-		
-	</connections>
-	<buttongroups>
-		<buttongroup name="buttonGroupWorkOn"/>
-		<buttongroup name="buttonGroupDataType"/>
-	</buttongroups>undefined
-	
+ <class>SegmentWithSAM</class>
+ <widget class="qMRMLWidget" name="SegmentWithSAM">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>816</width>
+    <height>759</height>
+   </rect>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="4" column="0">
+    <layout class="QVBoxLayout">
+     <item>
+      <layout class="QHBoxLayout">
+       <item>
+        <widget class="QPushButton" name="goToMarkupsButton">
+         <property name="text">
+          <string>Create New Box Prompt</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="goToSegmentEditorButton">
+         <property name="text">
+          <string>Configure Labels</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout">
+       <item>
+        <widget class="QPushButton" name="segmentButton">
+         <property name="text">
+          <string>Start 2D Segmentation for Current Slice</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="stopSegmentButton">
+         <property name="text">
+          <string>Stop 2D Segmentation for Current Slice</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout">
+       <item>
+        <widget class="QPushButton" name="propagateToLeft">
+         <property name="text">
+          <string>Propagate To Left</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="propagateToRight">
+         <property name="text">
+          <string>Propagate To Right</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout">
+       <item>
+        <widget class="QPushButton" name="propagateMaskThroughAllSlices">
+         <property name="toolTip">
+          <string>If you would like to use ground truth annotation as prompt for SAM-2, it is recommended that you annotate the middle slice among the slices containing the tissue you want to segment.</string>
+         </property>
+         <property name="text">
+          <string>Propagate GT Mask Through All Slices</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Add Positive Prompt Point</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="qSlicerSimpleMarkupsWidget" name="positivePrompts">
+       <property name="enterPlaceModeOnNodeChange">
+        <bool>false</bool>
+       </property>
+       <property name="nodeSelectorVisible">
+        <bool>false</bool>
+       </property>
+       <property name="defaultNodeColor">
+        <color>
+         <red>0</red>
+         <green>255</green>
+         <blue>0</blue>
+        </color>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Add Negative Prompt Point</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="qSlicerSimpleMarkupsWidget" name="negativePrompts">
+       <property name="enterPlaceModeOnNodeChange">
+        <bool>false</bool>
+       </property>
+       <property name="nodeSelectorVisible">
+        <bool>false</bool>
+       </property>
+       <property name="defaultNodeColor">
+        <color>
+         <red>255</red>
+         <green>0</green>
+         <blue>0</blue>
+        </color>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="0">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0">
+    <layout class="QHBoxLayout">
+     <item>
+      <layout class="QHBoxLayout">
+       <item>
+        <widget class="QComboBox" name="modelDropDown"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QComboBox" name="segmentationDropDown">
+       <property name="toolTip">
+        <string>Select target label you want to segment:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="maskDropDown">
+       <property name="toolTip">
+        <string>SAM produces 3 masks for the same set of prompt inputs. Mask-1 is generally the best, but you can select the most accurate mask among them:</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_1">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Select your model, label and mask output:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>qMRMLWidget</class>
+   <extends>QWidget</extends>
+   <header>qMRMLWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerWidget</class>
+   <extends>QWidget</extends>
+   <header>qSlicerWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>qSlicerSimpleMarkupsWidget</class>
+   <extends>qSlicerWidget</extends>
+   <header>qSlicerSimpleMarkupsWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>SegmentWithSAM</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>positivePrompts</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>SegmentWithSAM</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>negativePrompts</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
