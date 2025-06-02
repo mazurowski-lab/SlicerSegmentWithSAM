@@ -49,7 +49,7 @@ Before adding this extension to 3D Slicer, you must install some dependencies in
 ```
 slicer.util.pip_install("git+https://github.com/facebookresearch/segment-anything.git") 
 slicer.util.pip_install("torch torchvision torchaudio") 
-slicer.util.pip_install("opencv-python") 
+slicer.util.pip_install("opencv-contrib-python") 
 ```
 
 You should also download the <a href="https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth">following checkpoint</a> of SAM into the repository directory (in the same directory as the readme file).
